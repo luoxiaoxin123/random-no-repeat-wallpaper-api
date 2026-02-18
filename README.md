@@ -53,12 +53,14 @@ docker compose up -d --build
 
 ## 配置项
 
-- `API_TOKEN`：接口 Token，使用 Bearer 鉴权
+- `API_TOKEN`：接口 Token，使用 Bearer 鉴权（留空/空白/`""`/`null`/`undefined` 会自动视为关闭鉴权）
+- `AUTH_ENABLED`：是否强制启用鉴权（默认 `true`，设为 `false` 时忽略 `API_TOKEN`）
 - `BASE_URL`：对外访问地址（例如 `https://img.example.com`）
 - `SCAN_INTERVAL_SEC`：目录重扫间隔（秒）
 - `DEDUP_ENABLED`：是否启用防重复（`true/false`）
 - `DEDUP_WINDOW`：最近 N 张不重复
 - `TOP_K`：最近比例候选池大小
+- `RATE_LIMIT_RPS`：每个 IP 每秒允许的请求数（`0` 表示关闭限流，默认 `10`）
 - `UA_TRUST_MODE`：`auto/always/never`
 
 ## 接口说明
@@ -107,6 +109,13 @@ curl -i "http://localhost:8080/api/wallpaper?width=1179&height=2556&client_id=ph
 ```
 
 成功返回 `302`，`Location` 指向 `/assets/...` 或 `BASE_URL/assets/...`。
+
+## 限流策略
+
+- 作用范围：`GET /api/wallpaper`
+- 维度：按客户端 IP 统计
+- 窗口：固定 1 秒窗口
+- 超限返回：`429` + `{ "error": "too_many_requests", "limitPerSecond": <配置值> }`
 
 ## 去重策略
 
