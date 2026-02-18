@@ -26,7 +26,7 @@ function authPreHandler(apiToken) {
     }
     const token = extractBearerToken(request.headers.authorization);
     if (!safeEqual(token, apiToken)) {
-      reply.code(401).send({ error: 'unauthorized' });
+      return reply.code(401).send({ error: 'unauthorized' });
     }
   };
 }
