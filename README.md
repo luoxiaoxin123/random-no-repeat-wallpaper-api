@@ -59,6 +59,7 @@ docker compose up -d --build
 - `DEDUP_ENABLED`：是否启用防重复（`true/false`）
 - `DEDUP_WINDOW`：最近 N 张不重复
 - `TOP_K`：最近比例候选池大小
+- `RATE_LIMIT_RPS`：每个 IP 每秒允许的请求数（`0` 表示关闭限流，默认 `10`）
 - `UA_TRUST_MODE`：`auto/always/never`
 
 ## 接口说明
@@ -107,6 +108,13 @@ curl -i "http://localhost:8080/api/wallpaper?width=1179&height=2556&client_id=ph
 ```
 
 成功返回 `302`，`Location` 指向 `/assets/...` 或 `BASE_URL/assets/...`。
+
+## 限流策略
+
+- 作用范围：`GET /api/wallpaper`
+- 维度：按客户端 IP 统计
+- 窗口：固定 1 秒窗口
+- 超限返回：`429` + `{ "error": "too_many_requests", "limitPerSecond": <配置值> }`
 
 ## 去重策略
 

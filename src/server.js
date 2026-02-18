@@ -16,6 +16,35 @@ function resolveClientIp(request) {
   return request.ip || '';
 }
 
+
+function buildRateLimitPreHandler(rateLimitRps) {
+  if (!rateLimitRps || rateLimitRps <= 0) {
+    return async function noRateLimit() {};
+  }
+
+  const buckets = new Map();
+
+  return async function rateLimitPreHandler(request, reply) {
+    const key = resolveClientIp(request) || 'unknown';
+    const nowSec = Math.floor(Date.now() / 1000);
+    const current = buckets.get(key);
+
+    if (!current || current.windowSec !== nowSec) {
+      buckets.set(key, { windowSec: nowSec, count: 1 });
+      return;
+    }
+
+    if (current.count >= rateLimitRps) {
+      return reply.code(429).send({
+        error: 'too_many_requests',
+        limitPerSecond: rateLimitRps
+      });
+    }
+
+    current.count += 1;
+  };
+}
+
 function buildPublicUrl(baseUrl, relativeUrlPath) {
   const safePath = relativeUrlPath.startsWith('/') ? relativeUrlPath.slice(1) : relativeUrlPath;
   if (baseUrl) {
@@ -42,6 +71,7 @@ async function start() {
 
   let index = await buildIndex(config.wallpapersDir);
   const dedupStore = new Map();
+  const rateLimitPreHandler = buildRateLimitPreHandler(config.rateLimitRps);
 
   app.log.info({
     wallpapersDir: config.wallpapersDir,
@@ -74,6 +104,9 @@ async function start() {
         window: config.dedupWindow,
         keysInMemory: dedupStore.size
       },
+      security: {
+        rateLimitRps: config.rateLimitRps
+      },
       matching: {
         topK: config.topK,
         uaTrustMode: config.uaTrustMode,
@@ -85,7 +118,7 @@ async function start() {
   });
 
   app.get('/api/wallpaper', {
-    preHandler: authPreHandler(config.apiToken)
+    preHandler: [authPreHandler(config.apiToken), rateLimitPreHandler]
   }, async (request, reply) => {
     const clientIdRaw = request.query.client_id ? String(request.query.client_id).trim() : '';
     const dedupKey = clientIdRaw || resolveClientIp(request);

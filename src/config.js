@@ -41,6 +41,7 @@ function loadConfig() {
   const scanIntervalSec = parseIntWithDefault(process.env.SCAN_INTERVAL_SEC, 30, 1);
   const topK = parseIntWithDefault(process.env.TOP_K, 30, 1);
   const dedupWindow = parseIntWithDefault(process.env.DEDUP_WINDOW, 20, 0);
+  const rateLimitRps = parseIntWithDefault(process.env.RATE_LIMIT_RPS, 10, 0);
   const uaTrustMode = (process.env.UA_TRUST_MODE || 'auto').toLowerCase();
   const allowedUaTrustModes = new Set(['auto', 'always', 'never']);
 
@@ -54,6 +55,7 @@ function loadConfig() {
     topK,
     dedupEnabled: parseBool(process.env.DEDUP_ENABLED, true),
     dedupWindow,
+    rateLimitRps,
     uaTrustMode: allowedUaTrustModes.has(uaTrustMode) ? uaTrustMode : 'auto'
   };
 }
