@@ -156,7 +156,7 @@ async function start() {
       dedupApplied: Boolean(result.meta.dedupApplied)
     }, 'wallpaper selected');
 
-    return reply.redirect(302, location);
+    return reply.redirect(location, 302);
   });
 
   await app.listen({ host: config.host, port: config.port });
