@@ -29,6 +29,13 @@ function normalizeBaseUrl(url) {
   return url.endsWith('/') ? url.slice(0, -1) : url;
 }
 
+function normalizeApiToken(token) {
+  if (token === undefined || token === null) {
+    return '';
+  }
+  return String(token).trim();
+}
+
 function loadConfig() {
   const port = parseIntWithDefault(process.env.PORT, 8080, 1);
   const scanIntervalSec = parseIntWithDefault(process.env.SCAN_INTERVAL_SEC, 30, 1);
@@ -40,7 +47,7 @@ function loadConfig() {
   return {
     port,
     host: process.env.HOST || '0.0.0.0',
-    apiToken: process.env.API_TOKEN || '',
+    apiToken: normalizeApiToken(process.env.API_TOKEN),
     wallpapersDir: process.env.WALLPAPERS_DIR || '/data/wallpapers',
     baseUrl: normalizeBaseUrl(process.env.BASE_URL || ''),
     scanIntervalSec,
