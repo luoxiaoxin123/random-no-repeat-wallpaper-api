@@ -29,24 +29,53 @@ function normalizeBaseUrl(url) {
   return url.endsWith('/') ? url.slice(0, -1) : url;
 }
 
+function normalizeApiToken(token) {
+  if (token === undefined || token === null) {
+    return '';
+  }
+
+  const raw = String(token).trim();
+  if (!raw) {
+    return '';
+  }
+
+  const unquoted = ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'")))
+    ? raw.slice(1, -1).trim()
+    : raw;
+
+  if (!unquoted) {
+    return '';
+  }
+
+  const lowered = unquoted.toLowerCase();
+  if (lowered === 'null' || lowered === 'undefined' || lowered === 'none') {
+    return '';
+  }
+
+  return unquoted;
+}
+
 function loadConfig() {
   const port = parseIntWithDefault(process.env.PORT, 8080, 1);
   const scanIntervalSec = parseIntWithDefault(process.env.SCAN_INTERVAL_SEC, 30, 1);
   const topK = parseIntWithDefault(process.env.TOP_K, 30, 1);
   const dedupWindow = parseIntWithDefault(process.env.DEDUP_WINDOW, 20, 0);
+  const rateLimitRps = parseIntWithDefault(process.env.RATE_LIMIT_RPS, 10, 0);
+  const authEnabled = parseBool(process.env.AUTH_ENABLED, true);
   const uaTrustMode = (process.env.UA_TRUST_MODE || 'auto').toLowerCase();
   const allowedUaTrustModes = new Set(['auto', 'always', 'never']);
 
   return {
     port,
     host: process.env.HOST || '0.0.0.0',
-    apiToken: process.env.API_TOKEN || '',
+    apiToken: authEnabled ? normalizeApiToken(process.env.API_TOKEN) : '',
     wallpapersDir: process.env.WALLPAPERS_DIR || '/data/wallpapers',
     baseUrl: normalizeBaseUrl(process.env.BASE_URL || ''),
     scanIntervalSec,
     topK,
     dedupEnabled: parseBool(process.env.DEDUP_ENABLED, true),
     dedupWindow,
+    rateLimitRps,
     uaTrustMode: allowedUaTrustModes.has(uaTrustMode) ? uaTrustMode : 'auto'
   };
 }
