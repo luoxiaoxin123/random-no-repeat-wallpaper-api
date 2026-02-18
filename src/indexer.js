@@ -2,7 +2,7 @@
 
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const { imageSizeFromFile } = require('image-size/fromFile');
+const { imageSize } = require('image-size');
 
 const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
 
@@ -70,7 +70,15 @@ async function buildIndex(wallpapersDir) {
 
   for (const absPath of files) {
     try {
-      const size = await imageSizeFromFile(absPath);
+      const size = await new Promise((resolve, reject) => {
+        imageSize(absPath, (error, dimensions) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(dimensions);
+        });
+      });
       const width = Number(size.width);
       const height = Number(size.height);
       if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
