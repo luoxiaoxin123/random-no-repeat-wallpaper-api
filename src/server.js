@@ -105,7 +105,8 @@ async function start() {
         keysInMemory: dedupStore.size
       },
       security: {
-        rateLimitRps: config.rateLimitRps
+        rateLimitRps: config.rateLimitRps,
+        authEnabled: Boolean(config.apiToken)
       },
       matching: {
         topK: config.topK,

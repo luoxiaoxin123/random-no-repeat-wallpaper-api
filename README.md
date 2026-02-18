@@ -53,7 +53,8 @@ docker compose up -d --build
 
 ## 配置项
 
-- `API_TOKEN`：接口 Token，使用 Bearer 鉴权。如果空着则不开启鉴权。
+- `API_TOKEN`：接口 Token，使用 Bearer 鉴权（留空/空白/`""`/`null`/`undefined` 会自动视为关闭鉴权）
+- `AUTH_ENABLED`：是否强制启用鉴权（默认 `true`，设为 `false` 时忽略 `API_TOKEN`）
 - `BASE_URL`：对外访问地址（例如 `https://img.example.com`）
 - `SCAN_INTERVAL_SEC`：目录重扫间隔（秒）
 - `DEDUP_ENABLED`：是否启用防重复（`true/false`）
@@ -108,6 +109,11 @@ curl -i "http://localhost:8080/api/wallpaper?width=1179&height=2556&client_id=ph
 ```
 
 成功返回 `302`，`Location` 指向 `/assets/...` 或 `BASE_URL/assets/...`。
+
+## 常见问题排查
+
+- 若你设置了空 `API_TOKEN` 但仍返回 `401 unauthorized`，先请求 `GET /api/health`，确认 `security.authEnabled` 是否为 `false`。
+- 如果 `authEnabled` 为 `true`，可显式设置 `AUTH_ENABLED=false` 强制关闭鉴权。
 
 ## 限流策略
 
