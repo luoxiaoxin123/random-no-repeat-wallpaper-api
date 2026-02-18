@@ -16,7 +16,7 @@
 ## 目录结构建议
 
 ```text
-.
+。
 ├─ docker-compose.yml
 ├─ Dockerfile
 ├─ src/
@@ -53,7 +53,7 @@ docker compose up -d --build
 
 ## 配置项
 
-- `API_TOKEN`：接口 Token，使用 Bearer 鉴权
+- `API_TOKEN`：接口 Token，使用 Bearer 鉴权。如果空着则不开启鉴权。
 - `BASE_URL`：对外访问地址（例如 `https://img.example.com`）
 - `SCAN_INTERVAL_SEC`：目录重扫间隔（秒）
 - `DEDUP_ENABLED`：是否启用防重复（`true/false`）
