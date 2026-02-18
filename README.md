@@ -110,6 +110,11 @@ curl -i "http://localhost:8080/api/wallpaper?width=1179&height=2556&client_id=ph
 
 成功返回 `302`，`Location` 指向 `/assets/...` 或 `BASE_URL/assets/...`。
 
+## 常见问题排查
+
+- 若你设置了空 `API_TOKEN` 但仍返回 `401 unauthorized`，先请求 `GET /api/health`，确认 `security.authEnabled` 是否为 `false`。
+- 如果 `authEnabled` 为 `true`，可显式设置 `AUTH_ENABLED=false` 强制关闭鉴权。
+
 ## 限流策略
 
 - 作用范围：`GET /api/wallpaper`
