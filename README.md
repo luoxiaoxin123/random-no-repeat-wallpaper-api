@@ -16,7 +16,7 @@
 ## 目录结构建议
 
 ```text
-.
+。
 ├─ docker-compose.yml
 ├─ Dockerfile
 ├─ src/
