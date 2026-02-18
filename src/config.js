@@ -62,6 +62,8 @@ function loadConfig() {
   const dedupWindow = parseIntWithDefault(process.env.DEDUP_WINDOW, 20, 0);
   const rateLimitRps = parseIntWithDefault(process.env.RATE_LIMIT_RPS, 10, 0);
   const authEnabled = parseBool(process.env.AUTH_ENABLED, true);
+  const defaultWallpaperWidth = parseIntWithDefault(process.env.DEFAULT_WALLPAPER_WIDTH, 0, 0);
+  const defaultWallpaperHeight = parseIntWithDefault(process.env.DEFAULT_WALLPAPER_HEIGHT, 0, 0);
   const uaTrustMode = (process.env.UA_TRUST_MODE || 'auto').toLowerCase();
   const allowedUaTrustModes = new Set(['auto', 'always', 'never']);
 
@@ -76,6 +78,8 @@ function loadConfig() {
     dedupEnabled: parseBool(process.env.DEDUP_ENABLED, true),
     dedupWindow,
     rateLimitRps,
+    defaultWallpaperWidth,
+    defaultWallpaperHeight,
     uaTrustMode: allowedUaTrustModes.has(uaTrustMode) ? uaTrustMode : 'auto'
   };
 }

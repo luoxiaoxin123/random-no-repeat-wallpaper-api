@@ -53,6 +53,40 @@ function buildPublicUrl(baseUrl, relativeUrlPath) {
   return `/assets/${safePath}`;
 }
 
+function parsePositiveInteger(value) {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+  const parsed = Number.parseInt(String(value), 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+}
+
+function resolveRenderSize(query, config) {
+  const queryWidth = parsePositiveInteger(query.width);
+  const queryHeight = parsePositiveInteger(query.height);
+  if (queryWidth && queryHeight) {
+    return { width: queryWidth, height: queryHeight, source: 'query' };
+  }
+
+  if (config.defaultWallpaperWidth > 0 && config.defaultWallpaperHeight > 0) {
+    return {
+      width: config.defaultWallpaperWidth,
+      height: config.defaultWallpaperHeight,
+      source: 'default'
+    };
+  }
+
+  return null;
+}
+
+function buildScaledSvg(location, width, height) {
+  const escapedHref = String(location).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">\n  <image href="${escapedHref}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet"/>\n</svg>`;
+}
+
 async function start() {
   const config = loadConfig();
   const app = Fastify({
@@ -108,6 +142,10 @@ async function start() {
         rateLimitRps: config.rateLimitRps,
         authEnabled: Boolean(config.apiToken)
       },
+      render: {
+        defaultWallpaperWidth: config.defaultWallpaperWidth,
+        defaultWallpaperHeight: config.defaultWallpaperHeight
+      },
       matching: {
         topK: config.topK,
         uaTrustMode: config.uaTrustMode,
@@ -147,6 +185,29 @@ async function start() {
     }
 
     const location = buildPublicUrl(config.baseUrl, result.item.relativeUrlPath);
+    const renderSize = resolveRenderSize(request.query || {}, config);
+
+    if (renderSize) {
+      const svg = buildScaledSvg(location, renderSize.width, renderSize.height);
+      app.log.info({
+        category: request.query.category || '',
+        clientId: clientIdRaw || null,
+        ip: resolveClientIp(request),
+        selected: result.item.id,
+        ratioSource: result.meta.ratioSource || null,
+        dedupApplied: Boolean(result.meta.dedupApplied),
+        renderMode: 'scaled_svg',
+        renderSource: renderSize.source,
+        renderWidth: renderSize.width,
+        renderHeight: renderSize.height
+      }, 'wallpaper selected');
+
+      return reply
+        .header('cache-control', 'no-store')
+        .type('image/svg+xml; charset=utf-8')
+        .send(svg);
+    }
+
     app.log.info({
       category: request.query.category || '',
       clientId: clientIdRaw || null,

@@ -6,6 +6,7 @@
 ## 功能
 
 - `GET /api/wallpaper`：返回 `302` 重定向到图片资源地址
+- 当请求同时提供 `width` 和 `height` 时：返回按目标分辨率等比缩放后的 SVG（留白为透明）
 - 支持比例输入：`width + height` 或 `aspect`
 - 无输入时：先按 `User-Agent` 粗分；不可靠时走“电脑倾向”
 - 电脑倾向比例来自库存主流横屏比例（不写死 `16:9`）
@@ -61,6 +62,8 @@ docker compose up -d --build
 - `DEDUP_WINDOW`：最近 N 张不重复
 - `TOP_K`：最近比例候选池大小
 - `RATE_LIMIT_RPS`：每个 IP 每秒允许的请求数（`0` 表示关闭限流，默认 `10`）
+- `DEFAULT_WALLPAPER_WIDTH`：可选，未传 `width` 时用于缩放返回的默认宽度（需和 `DEFAULT_WALLPAPER_HEIGHT` 同时设置，默认 `0` 表示不启用）
+- `DEFAULT_WALLPAPER_HEIGHT`：可选，未传 `height` 时用于缩放返回的默认高度（默认 `0`）
 - `UA_TRUST_MODE`：`auto/always/never`
 
 ## 接口说明
@@ -109,6 +112,13 @@ curl -i "http://localhost:8080/api/wallpaper?width=1179&height=2556&client_id=ph
 ```
 
 成功返回 `302`，`Location` 指向 `/assets/...` 或 `BASE_URL/assets/...`。
+
+当同时提供 `width` 和 `height` 时，接口直接返回 `image/svg+xml`：
+
+- 原图会等比缩放到目标画布内（`contain`）
+- 空白区域使用透明底填充
+
+如果客户端（例如 Komari）不一定会传 `width` / `height`，可在环境变量里设置 `DEFAULT_WALLPAPER_WIDTH` 和 `DEFAULT_WALLPAPER_HEIGHT`，这样即使请求不带尺寸也会返回缩放后的 SVG。
 
 ## 常见问题排查
 
